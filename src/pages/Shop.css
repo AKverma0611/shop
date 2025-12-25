@@ -1,0 +1,15 @@
+.shop-layout {
+    display: flex;
+    gap: 30px;
+    margin-top: 40px;
+}
+
+.shop-content {
+    flex: 1;
+}
+
+@media (max-width: 768px) {
+    .shop-layout {
+        flex-direction: column;
+    }
+}

@@ -1,0 +1,127 @@
+.testimonials-grid {
+    display: grid;
+    /* Use auto-fill to keep cards small and fill the row, or auto-fit but with a max-width constrain on the container if needed */
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 30px;
+    padding: 20px 0;
+    justify-content: center;
+}
+
+.testimonial-card {
+    background: white;
+    padding: 30px;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    text-align: center;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease;
+}
+
+.testimonial-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md);
+}
+
+.stars {
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+    margin-bottom: 15px;
+}
+
+.review-text {
+    font-style: italic;
+    color: var(--color-text);
+    margin-bottom: 20px;
+    font-size: 1.05rem;
+}
+
+.review-author {
+    font-family: var(--font-title);
+    color: var(--color-highlight);
+    font-size: 1.2rem;
+}
+
+/* User Review Form & Images */
+.testimonials-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.testimonials-header {
+    display: flex;
+    justify-content: center;
+    /* Center the button */
+    margin-bottom: 20px;
+}
+
+.write-review-btn {
+    background-color: var(--color-primary);
+    color: black;
+    /* Changed to black as requested */
+    border: none;
+    padding: 10px 20px;
+    border-radius: 25px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: transform 0.2s;
+}
+
+.write-review-btn:hover {
+    transform: scale(1.05);
+}
+
+.review-form {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    max-width: 500px;
+    margin: 0 auto 30px;
+}
+
+.review-form input[type="text"],
+.review-form textarea {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-family: inherit;
+}
+
+.review-form textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+.review-form button[type="submit"] {
+    background-color: var(--color-highlight);
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.rating-select {
+    display: flex;
+    gap: 5px;
+}
+
+.review-image {
+    margin-top: 10px;
+    border-radius: 8px;
+    overflow: hidden;
+    max-width: 100%;
+}
+
+.review-image img {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    max-height: 200px;
+}

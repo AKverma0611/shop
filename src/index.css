@@ -1,0 +1,140 @@
+@import url('https://fonts.googleapis.com/css2?family=Pacifico&family=Poppins:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --color-primary: #FADADD;
+  /* Baby Pink */
+  --color-secondary: #FADADD;
+  /* Peach */
+  --color-accent: #E6E6FA;
+  /* Lavender */
+  --color-highlight: #B76E79;
+  /* Rose Gold */
+  --color-text: #333333;
+  --color-text-light: #666666;
+  --color-bg: #FFFFFF;
+  --color-bg-soft: #FFF5F5;
+  /* Very light pinkish white */
+
+  --font-title: 'Pacifico', cursive;
+  --font-body: 'Poppins', sans-serif;
+
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-full: 9999px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--color-text);
+  background-color: var(--color-bg);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-title);
+  color: var(--color-highlight);
+  font-weight: 400;
+  /* Pacifico looks best at 400 */
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+button {
+  font-family: var(--font-body);
+  cursor: pointer;
+  border: none;
+  outline: none;
+}
+
+ul {
+  list-style: none;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+/* Utilities */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 24px;
+  border-radius: var(--radius-full);
+  font-weight: 600;
+  transition: all 0.3s ease;
+  gap: 8px;
+}
+
+.btn-primary {
+  background-color: var(--color-highlight);
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #a05d68;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-secondary {
+  background-color: var(--color-primary);
+  color: var(--color-text);
+}
+
+.btn-secondary:hover {
+  background-color: #f0c0c5;
+  transform: translateY(-2px);
+}
+
+.btn-outline {
+  border: 2px solid var(--color-highlight);
+  color: var(--color-highlight);
+  background: transparent;
+}
+
+.btn-outline:hover {
+  background-color: var(--color-highlight);
+  color: white;
+}
+
+.section-title {
+  text-align: center;
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  color: var(--color-highlight);
+}
+
+.section-subtitle {
+  text-align: center;
+  color: var(--color-text-light);
+  margin-bottom: 3rem;
+  font-size: 1.1rem;
+}

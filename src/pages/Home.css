@@ -1,0 +1,80 @@
+.home-page {
+    width: 100%;
+}
+
+.category-nav-section {
+    padding: 40px 20px;
+    background-color: #fff;
+    text-align: center;
+}
+
+.category-buttons-container {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+}
+
+.category-card-btn {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 250px;
+    height: 150px;
+    background: linear-gradient(135deg, var(--color-bg) 0%, #fff 100%);
+    border: 2px solid var(--color-secondary);
+    border-radius: 15px;
+    text-decoration: none;
+    color: var(--color-text);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    overflow: hidden;
+    position: relative;
+}
+
+.category-card-btn:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    background: var(--color-secondary);
+    border-color: var(--color-highlight);
+}
+
+.category-card-btn h3 {
+    font-size: 1.4rem;
+    font-family: var(--font-title);
+    margin: 0;
+    z-index: 2;
+    color: var(--color-highlight);
+}
+
+.category-card-btn:hover h3 {
+    color: black;
+}
+
+.category-card-btn span {
+    font-size: 0.9rem;
+    color: #666;
+    margin-top: 5px;
+    z-index: 2;
+}
+
+.category-card-btn:hover span {
+    color: black;
+}
+
+@media (max-width: 768px) {
+    .category-buttons-container {
+        gap: 15px;
+    }
+
+    .category-card-btn {
+        width: 45%;
+        height: 120px;
+    }
+
+    .category-card-btn h3 {
+        font-size: 1.1rem;
+    }
+}
