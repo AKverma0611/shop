@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Mail, Lock, User } from 'lucide-react';
+import { X, Mail, Lock, User, Phone } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import './AuthModal.css';
 
@@ -12,7 +12,8 @@ const AuthModal = () => {
     const [formData, setFormData] = useState({
         name: '',
         email: '',
-        password: ''
+        password: '',
+        phoneNumber: ''
     });
 
     if (!isAuthModalOpen) return null;
@@ -20,7 +21,7 @@ const AuthModal = () => {
     const toggleMode = () => {
         setIsLogin(!isLogin);
         setError('');
-        setFormData({ name: '', email: '', password: '' });
+        setFormData({ name: '', email: '', password: '', phoneNumber: '' });
     };
 
     const handleChange = (e) => {
@@ -36,7 +37,11 @@ const AuthModal = () => {
             if (isLogin) {
                 await login(formData.email, formData.password);
             } else {
-                await signup(formData.email, formData.password, formData.name);
+                // Basic Validation (Security Requirement)
+                if (formData.phoneNumber && !/^\d{10}$/.test(formData.phoneNumber)) {
+                    throw new Error("Phone number must be exactly 10 digits.");
+                }
+                await signup(formData.email, formData.password, formData.name, formData.phoneNumber);
             }
             closeAuthModal();
         } catch (err) {
@@ -91,6 +96,20 @@ const AuthModal = () => {
                             required
                         />
                     </div>
+                    {!isLogin && (
+                        <div className="form-group">
+                            <div className="input-icon"><Phone size={20} /></div>
+                            <input
+                                type="tel"
+                                name="phoneNumber"
+                                placeholder="Phone Number (10 digits)"
+                                value={formData.phoneNumber}
+                                onChange={handleChange}
+                                required
+                                maxLength="10"
+                            />
+                        </div>
+                    )}
                     <div className="form-group">
                         <div className="input-icon"><Lock size={20} /></div>
                         <input

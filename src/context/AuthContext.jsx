@@ -21,19 +21,20 @@ export const AuthProvider = ({ children }) => {
     const openAuthModal = () => setIsAuthModalOpen(true);
     const closeAuthModal = () => setIsAuthModalOpen(false);
 
-    const signup = async (email, password, name) => {
+    const signup = async (email, password, name, phoneNumber) => {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
 
         // Update Profile
         await updateProfile(user, { displayName: name });
 
-        // Create User Document in Firestore (optional but good for future)
+        // Create User Document in Firestore
         await setDoc(doc(db, "users", user.uid), {
             uid: user.uid,
             name: name,
             email: email,
-            role: 'customer', // default role
+            phoneNumber: phoneNumber || '', // Save phone number
+            role: 'customer',
             createdAt: new Date()
         });
 

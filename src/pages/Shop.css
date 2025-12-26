@@ -11,5 +11,15 @@
 @media (max-width: 768px) {
     .shop-layout {
         flex-direction: column;
+        gap: 20px;
+    }
+
+    /* Make filters more compact on mobile */
+    .filter-sidebar {
+        width: 100%;
+        background: #fdf2f8;
+        /* Light pink background to differentiate */
+        padding: 15px;
+        border-radius: 10px;
     }
 }
