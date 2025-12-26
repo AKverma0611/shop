@@ -58,7 +58,7 @@ ${formData.message}`;
                         <MapPin className="info-icon" />
                         <div>
                             <h3>Location</h3>
-                            <p>Mumbai, India</p>
+                            <p>Indore, Madhya Pradesh</p>
                         </div>
                     </div>
                 </div>
