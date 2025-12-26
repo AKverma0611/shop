@@ -343,9 +343,33 @@
     font-style: italic;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 768px) {
     .form-row {
         grid-template-columns: 1fr;
         gap: 0;
+    }
+
+    .admin-tabs {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .tab-btn {
+        width: 100%;
+        text-align: center;
+        padding: 12px;
+    }
+
+    .admin-product-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-container {
+        padding: 20px 10px !important;
+        /* Override inline padding */
+    }
+
+    .login-card {
+        padding: 25px;
     }
 }

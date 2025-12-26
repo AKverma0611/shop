@@ -6,7 +6,7 @@ import './ProductCard.css';
 const ProductCard = ({ product }) => {
     const { toggleWishlist, isInWishlist } = useWishlist();
     const isWishlisted = isInWishlist(product.id);
-    const whatsappUrl = `https://wa.me/919131126855?text=${encodeURIComponent(
+    const whatsappUrl = `https://wa.me/916264246210?text=${encodeURIComponent(
         `Hello! I want to order this item: \n\n*Product Name:* ${product.name} \n*Price:* ₹${product.price} \n*Image:* ${product.image}\n\nIs it available?`
     )}`;
 

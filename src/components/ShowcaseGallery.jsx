@@ -3,19 +3,22 @@ import showcase1 from '../assets/showcase-1.png';
 import showcase2 from '../assets/showcase-2.png';
 import './ShowcaseGallery.css';
 
-const ShowcaseGallery = () => {
-    const items = [
+const ShowcaseGallery = ({ images }) => {
+    // Default items as fallback (only if no images provided)
+    const defaultItems = [
         { id: 1, image: showcase1, title: "Handmade Embroidery" },
         { id: 2, image: showcase2, title: "Custom Gowns" },
-        { id: 3, image: showcase1, title: "Detailing" }, // Reusing for demo
-        { id: 4, image: showcase2, title: "Party Wear" }, // Reusing for demo
-        { id: 5, image: showcase1, title: "Fabric Quality" }, // Reusing for demo
-        { id: 6, image: showcase2, title: "Happy Clients" }, // Reusing for demo
+        { id: 3, image: showcase1, title: "Detailing" },
+        { id: 4, image: showcase2, title: "Party Wear" },
+        { id: 5, image: showcase1, title: "Fabric Quality" },
+        { id: 6, image: showcase2, title: "Happy Clients" },
     ];
+
+    const displayItems = (images && images.length > 0) ? images : defaultItems;
 
     return (
         <div className="showcase-gallery">
-            {items.map((item) => (
+            {displayItems.map((item) => (
                 <div key={item.id} className="showcase-item">
                     <img src={item.image} alt={item.title} className="showcase-img" />
                     <div className="showcase-overlay">

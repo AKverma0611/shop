@@ -25,8 +25,8 @@ const Contact = () => {
 *Message:*
 ${formData.message}`;
 
-        // WhatsApp API URL (using the number provided: 919131126855)
-        const phoneNumber = "919131126855";
+        // WhatsApp API URL (using the number provided: 6264246210)
+        const phoneNumber = "916264246210";
         const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(whatsappMessage)}`;
 
         // Open WhatsApp
@@ -44,7 +44,7 @@ ${formData.message}`;
                         <Phone className="info-icon" />
                         <div>
                             <h3>Phone / WhatsApp</h3>
-                            <p>+91 91311 26855</p>
+                            <p>+91 62642 46210</p>
                         </div>
                     </div>
                     <div className="info-item">

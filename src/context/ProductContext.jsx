@@ -22,6 +22,9 @@ export const ProductProvider = ({ children }) => {
             }));
             setProducts(productsData);
             setLoading(false);
+        }, (error) => {
+            console.error("ProductContext Error:", error);
+            setLoading(false);
         });
 
         return () => unsubscribe();

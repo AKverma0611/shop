@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import Hero from '../components/Hero';
+import PromoBanner from '../components/PromoBanner';
 import ProductGrid from '../components/ProductGrid';
 import Testimonials from '../components/Testimonials';
 import { useProducts } from '../context/ProductContext';
@@ -17,6 +18,7 @@ const Home = () => {
     return (
         <div className="home-page">
             <Hero />
+            <PromoBanner />
 
             <section className="category-nav-section container">
                 <h2 className="section-title">Shop by Collection</h2>

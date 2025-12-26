@@ -3,6 +3,8 @@ import { useProducts } from '../context/ProductContext';
 import { useReviews } from '../context/ReviewsContext';
 import { Upload, CheckCircle, Trash2, Edit2, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useCustomOrders } from '../context/CustomOrdersContext';
+import { useConfig } from '../context/ConfigContext';
 import { auth } from '../firebase';
 import { signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'firebase/auth';
 import './Admin.css';
@@ -18,8 +20,22 @@ const Admin = () => {
 
     const { products, addProduct, deleteProduct, updateProduct } = useProducts();
     const { reviews, deleteReview } = useReviews();
+    const { galleryImages, addGalleryImage, deleteGalleryImage } = useCustomOrders();
+    const { promoBanner, updatePromoBanner } = useConfig();
     const [activeTab, setActiveTab] = useState('girls');
     const [loading, setLoading] = useState(false);
+    const [customOrderTitle, setCustomOrderTitle] = useState('');
+
+    // Promo Banner State
+    const [bannerText, setBannerText] = useState('');
+    const [isBannerActive, setIsBannerActive] = useState(false);
+
+    useEffect(() => {
+        if (promoBanner) {
+            setBannerText(promoBanner.text || '');
+            setIsBannerActive(promoBanner.isActive || false);
+        }
+    }, [promoBanner]);
     const [success, setSuccess] = useState('');
 
     // Edit Mode State
@@ -154,6 +170,29 @@ const Admin = () => {
         }
     };
 
+    const handleSaveSettings = async (e) => {
+        e.preventDefault();
+        try {
+            await updatePromoBanner(bannerText, isBannerActive);
+            setSuccess("Settings saved successfully!");
+            setTimeout(() => setSuccess(''), 3000);
+        } catch (error) {
+            alert("Failed to save settings: " + error.message);
+        }
+    };
+
+    const handleGalleryDelete = async (imageId) => {
+        if (window.confirm("Are you sure you want to delete this image from the gallery?")) {
+            try {
+                await deleteGalleryImage(imageId);
+                setSuccess("Gallery image deleted successfully!");
+                setTimeout(() => setSuccess(''), 3000);
+            } catch (error) {
+                alert("Failed to delete gallery image: " + error.message);
+            }
+        }
+    };
+
     const handleReviewDelete = async (reviewId) => {
         if (window.confirm("Are you sure you want to delete this review?")) {
             try {
@@ -175,12 +214,23 @@ const Admin = () => {
                 section: activeTab
             };
 
-            if (editingProduct) {
-                await updateProduct(editingProduct.id, productData, imageFile);
-                setSuccess("Product updated successfully!");
+            if (activeTab === 'custom') {
+                if (!imageFile) {
+                    alert("Please select an image");
+                    setLoading(false);
+                    return;
+                }
+                await addGalleryImage(imageFile, customOrderTitle);
+                setSuccess("Gallery image added successfully!");
+                setCustomOrderTitle('');
             } else {
-                await addProduct(productData, imageFile);
-                setSuccess("Product added successfully!");
+                if (editingProduct) {
+                    await updateProduct(editingProduct.id, productData, imageFile);
+                    setSuccess("Product updated successfully!");
+                } else {
+                    await addProduct(productData, imageFile);
+                    setSuccess("Product added successfully!");
+                }
             }
 
             resetForm();
@@ -254,12 +304,24 @@ const Admin = () => {
                 >
                     Manage Reviews
                 </button>
+                <button
+                    className={`tab-btn ${activeTab === 'custom' ? 'active' : ''}`}
+                    onClick={() => { setActiveTab('custom'); resetForm(); }}
+                >
+                    Custom Orders
+                </button>
+                <button
+                    className={`tab-btn ${activeTab === 'settings' ? 'active' : ''}`}
+                    onClick={() => { setActiveTab('settings'); }}
+                >
+                    Settings
+                </button>
             </div>
 
             <div className="admin-content">
-                <div className="form-header">
+                <div className="form-header" style={{ display: (activeTab === 'reviews' || activeTab === 'settings') ? 'none' : 'flex' }}>
                     <h2 className="form-title">
-                        {editingProduct ? 'Edit Product' : `Add New ${activeTab === 'girls' ? 'Girl' : 'Baby'} Product`}
+                        {activeTab === 'custom' ? 'Add New Gallery Image' : (editingProduct ? 'Edit Product' : `Add New ${activeTab === 'girls' ? 'Girl' : 'Baby'} Product`)}
                     </h2>
                     {editingProduct && (
                         <button onClick={resetForm} className="cancel-edit-btn">
@@ -268,7 +330,7 @@ const Admin = () => {
                     )}
                 </div>
 
-                <form onSubmit={handleSubmit} className="product-form" style={{ display: activeTab === 'reviews' ? 'none' : 'block' }}>
+                <form onSubmit={handleSubmit} className="product-form" style={{ display: (activeTab === 'reviews' || activeTab === 'settings') ? 'none' : 'block' }}>
                     <div className="form-group">
                         <label>Product Image</label>
                         <div className="image-upload-container">
@@ -287,7 +349,7 @@ const Admin = () => {
                         </div>
                     </div>
 
-                    <div className="form-row">
+                    <div className="form-row" style={{ display: activeTab === 'custom' ? 'none' : 'flex' }}>
                         <div className="form-group">
                             <label>Product Name</label>
                             <input
@@ -296,7 +358,7 @@ const Admin = () => {
                                 value={formData.name}
                                 onChange={handleInputChange}
                                 placeholder="e.g. Floral Dress"
-                                required
+                                required={activeTab !== 'custom'}
                             />
                         </div>
                         <div className="form-group">
@@ -307,19 +369,31 @@ const Admin = () => {
                                 value={formData.price}
                                 onChange={handleInputChange}
                                 placeholder="e.g. 1299"
-                                required
+                                required={activeTab !== 'custom'}
                             />
                         </div>
                     </div>
 
-                    <div className="form-row">
+                    {activeTab === 'custom' && (
+                        <div className="form-group">
+                            <label>Title (Optional)</label>
+                            <input
+                                type="text"
+                                value={customOrderTitle}
+                                onChange={(e) => setCustomOrderTitle(e.target.value)}
+                                placeholder="e.g. Happy Client"
+                            />
+                        </div>
+                    )}
+
+                    <div className="form-row" style={{ display: activeTab === 'custom' ? 'none' : 'flex' }}>
                         <div className="form-group">
                             <label>Category</label>
                             <select
                                 name="category"
                                 value={formData.category}
                                 onChange={handleInputChange}
-                                required
+                                required={activeTab !== 'custom'}
                             >
                                 <option value="">Select Category</option>
                                 {(activeTab === 'girls' ? girlsCategories : babyCategories).map(cat => (
@@ -327,7 +401,7 @@ const Admin = () => {
                                 ))}
                             </select>
                         </div>
-                        <div className="form-group">
+                        <div className="form-group" style={{ display: activeTab === 'custom' ? 'none' : 'block' }}>
                             <label>Type</label>
                             <select
                                 name="type"
@@ -342,7 +416,7 @@ const Admin = () => {
                         </div>
                     </div>
 
-                    <div className="form-group">
+                    <div className="form-group" style={{ display: activeTab === 'custom' ? 'none' : 'block' }}>
                         <label>Details / Description</label>
                         <textarea
                             name="details"
@@ -353,7 +427,7 @@ const Admin = () => {
                         ></textarea>
                     </div>
 
-                    <div className="form-row checkbox-row">
+                    <div className="form-row checkbox-row" style={{ display: activeTab === 'custom' ? 'none' : 'flex' }}>
                         <label className="checkbox-label">
                             <input
                                 type="checkbox"
@@ -375,7 +449,7 @@ const Admin = () => {
                     </div>
 
                     <button type="submit" className="submit-btn" disabled={loading}>
-                        {loading ? (editingProduct ? 'Updating...' : 'Uploading...') : (editingProduct ? 'Update Product' : 'Add Product')}
+                        {loading ? (editingProduct ? 'Updating...' : 'Uploading...') : (activeTab === 'custom' ? 'Add Image' : (editingProduct ? 'Update Product' : 'Add Product'))}
                     </button>
 
                     {success && <div className="success-message"><CheckCircle size={20} /> {success}</div>}
@@ -409,6 +483,62 @@ const Admin = () => {
                                 </div>
                             ))
                         )}
+                    </div>
+                </div>
+            ) : activeTab === 'custom' ? (
+                <div className="product-list-section">
+                    <h2 className="section-title" style={{ fontSize: '1.8rem', marginTop: '40px' }}>Gallery Images</h2>
+                    <div className="admin-product-grid">
+                        {galleryImages.length === 0 ? (
+                            <p className="no-products">No images found.</p>
+                        ) : (
+                            galleryImages.map(img => (
+                                <div key={img.id} className="admin-product-card">
+                                    <div className="admin-product-img">
+                                        <img src={img.image} alt={img.title} />
+                                    </div>
+                                    <div className="admin-product-info">
+                                        <h4>{img.title}</h4>
+                                        <div className="admin-actions">
+                                            <button onClick={() => handleGalleryDelete(img.id)} className="action-btn delete-btn">
+                                                <Trash2 size={16} /> Delete
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                </div>
+            ) : activeTab === 'settings' ? (
+                <div className="product-list-section">
+                    <h2 className="section-title" style={{ fontSize: '1.8rem', marginTop: '40px' }}>Site Configuration</h2>
+                    <div className="admin-card" style={{ maxWidth: '600px', margin: '0 auto', background: 'white', padding: '30px', borderRadius: '15px', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }}>
+                        <h3 style={{ marginBottom: '20px', color: 'var(--color-primary)' }}>Promo Banner</h3>
+                        <form onSubmit={handleSaveSettings}>
+                            <div className="form-group">
+                                <label>Banner Text</label>
+                                <input
+                                    type="text"
+                                    value={bannerText}
+                                    onChange={(e) => setBannerText(e.target.value)}
+                                    placeholder="e.g. Flash Sale! 50% Off"
+                                    required
+                                />
+                            </div>
+                            <div className="form-row checkbox-row">
+                                <label className="checkbox-label">
+                                    <input
+                                        type="checkbox"
+                                        checked={isBannerActive}
+                                        onChange={(e) => setIsBannerActive(e.target.checked)}
+                                    />
+                                    Show Banner on Home Page
+                                </label>
+                            </div>
+                            <button type="submit" className="submit-btn" style={{ marginTop: '20px' }}>Save Settings</button>
+                            {success && <div className="success-message" style={{ marginTop: '15px' }}><CheckCircle size={20} /> {success}</div>}
+                        </form>
                     </div>
                 </div>
             ) : (
