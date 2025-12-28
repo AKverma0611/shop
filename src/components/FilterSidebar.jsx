@@ -1,10 +1,10 @@
 import React from 'react';
 import './FilterSidebar.css';
 
-const FilterSidebar = ({ activeFilters, onFilterChange, categories }) => {
-    // Default options if not provided (though we will provide them from parent)
-    const availableCategories = categories || ["Dresses", "Tops", "Frocks", "Gowns", "Sets"];
-    const availableTypes = ["Casual", "Party Wear", "Formal", "Traditional"];
+const FilterSidebar = ({ activeFilters, onFilterChange, categories, types }) => {
+    // Default options if not provided
+    const availableCategories = categories || [];
+    const availableTypes = types || ["Casual", "Party Wear", "Formal", "Traditional"];
 
 
     const handleCategoryChange = (category) => {

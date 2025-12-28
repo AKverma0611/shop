@@ -2,11 +2,12 @@ import React, { useState, useEffect, useMemo } from 'react';
 import ProductGrid from '../components/ProductGrid';
 import FilterSidebar from '../components/FilterSidebar';
 import { useProducts } from '../context/ProductContext';
+import { useConfig } from '../context/ConfigContext';
 import './Shop.css';
 
 const BabyCollection = () => {
     const { products: dynamicProducts, loading } = useProducts();
-    const babyCategories = ['Onesies', 'Rompers', 'Sets', 'Frocks', 'Accessories'];
+    const { babyCategories, productTypes } = useConfig();
 
     // Filter State
     const [activeFilters, setActiveFilters] = useState({
@@ -49,6 +50,7 @@ const BabyCollection = () => {
                     activeFilters={activeFilters}
                     onFilterChange={setActiveFilters}
                     categories={babyCategories}
+                    types={productTypes}
                 />
                 <div className="shop-content">
                     {filteredProducts.length === 0 ? (

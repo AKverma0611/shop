@@ -21,7 +21,7 @@ const Admin = () => {
     const { products, addProduct, deleteProduct, updateProduct } = useProducts();
     const { reviews, deleteReview } = useReviews();
     const { galleryImages, addGalleryImage, deleteGalleryImage } = useCustomOrders();
-    const { promoBanner, updatePromoBanner } = useConfig();
+    const { promoBanner, updatePromoBanner, girlsCategories, babyCategories, productTypes, removeCategory, removeType, addCategory, addType } = useConfig();
     const [activeTab, setActiveTab] = useState('girls');
     const [loading, setLoading] = useState(false);
     const [customOrderTitle, setCustomOrderTitle] = useState('');
@@ -53,8 +53,12 @@ const Admin = () => {
     const [imageFile, setImageFile] = useState(null);
     const [imagePreview, setImagePreview] = useState(null);
 
-    const girlsCategories = ['Dresses', 'Gowns', 'Tops', 'Frocks', 'Sets', 'Lehenga'];
-    const babyCategories = ['Onesies', 'Rompers', 'Sets', 'Frocks', 'Accessories'];
+    // const girlsCategories = ['Dresses', 'Gowns', 'Tops', 'Frocks', 'Sets', 'Lehenga'];
+    // const babyCategories = ['Onesies', 'Rompers', 'Sets', 'Frocks', 'Accessories'];
+    // const productTypes = ['Casual', 'Party Wear', 'Formal', 'Traditional'];
+
+    const [isManualCategory, setIsManualCategory] = useState(false);
+    const [isManualType, setIsManualType] = useState(false);
 
     // Filter products for the active tab (using 'section' field which we save)
     // Note: We need to filter based on how we saved them. In AddProduct we used 'section'
@@ -138,6 +142,8 @@ const Admin = () => {
         setImageFile(null);
         setImagePreview(null);
         setEditingProduct(null);
+        setIsManualCategory(false);
+        setIsManualType(false);
     };
 
     const handleEditClick = (product) => {
@@ -151,6 +157,10 @@ const Admin = () => {
             isNew: product.isNew || false,
             isBestSeller: product.isBestSeller || false
         });
+
+        const currentCategories = activeTab === 'girls' ? girlsCategories : babyCategories;
+        setIsManualCategory(!currentCategories.includes(product.category));
+        setIsManualType(!productTypes.includes(product.type || 'Casual'));
         setImagePreview(product.image);
         // We don't set imageFile here unless they upload a new one
 
@@ -224,6 +234,18 @@ const Admin = () => {
                 setSuccess("Gallery image added successfully!");
                 setCustomOrderTitle('');
             } else {
+                // Check if we should add manual values to the list
+                if (isManualCategory && formData.category) {
+                    // Optionally add to list? For now just let them be custom strings.
+                    // But if the user wants to "Delete" them later, they need to be in the list.
+                    // Let's AUTO-ADD to the list if it's manual entry, so they can reuse it!
+                    // Actually, maybe ask? No, just add it. It's better for UX.
+                    await addCategory(activeTab, formData.category);
+                }
+                if (isManualType && formData.type) {
+                    await addType(formData.type);
+                }
+
                 if (editingProduct) {
                     await updateProduct(editingProduct.id, productData, imageFile);
                     setSuccess("Product updated successfully!");
@@ -388,31 +410,113 @@ const Admin = () => {
 
                     <div className="form-row" style={{ display: activeTab === 'custom' ? 'none' : 'flex' }}>
                         <div className="form-group">
-                            <label>Category</label>
-                            <select
-                                name="category"
-                                value={formData.category}
-                                onChange={handleInputChange}
-                                required={activeTab !== 'custom'}
-                            >
-                                <option value="">Select Category</option>
-                                {(activeTab === 'girls' ? girlsCategories : babyCategories).map(cat => (
-                                    <option key={cat} value={cat}>{cat}</option>
-                                ))}
-                            </select>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
+                                <label style={{ marginBottom: 0 }}>Category</label>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setIsManualCategory(!isManualCategory);
+                                        setFormData(prev => ({ ...prev, category: '' }));
+                                    }}
+                                    style={{ background: 'none', border: 'none', color: '#ff4081', fontSize: '0.8rem', cursor: 'pointer', textDecoration: 'underline' }}
+                                >
+                                    {isManualCategory ? 'Select from List' : 'Enter Manually'}
+                                </button>
+                            </div>
+                            {isManualCategory ? (
+                                <input
+                                    type="text"
+                                    name="category"
+                                    value={formData.category}
+                                    onChange={handleInputChange}
+                                    placeholder="Enter Category"
+                                    required={activeTab !== 'custom'}
+                                />
+                            ) : (
+                                <div style={{ display: 'flex', gap: '10px' }}>
+                                    <select
+                                        name="category"
+                                        value={formData.category}
+                                        onChange={handleInputChange}
+                                        required={activeTab !== 'custom'}
+                                        style={{ flex: 1 }}
+                                    >
+                                        <option value="">Select Category</option>
+                                        {(activeTab === 'girls' ? girlsCategories : babyCategories).map(cat => (
+                                            <option key={cat} value={cat}>{cat}</option>
+                                        ))}
+                                    </select>
+                                    {formData.category && (
+                                        <button
+                                            type="button"
+                                            onClick={async () => {
+                                                if (window.confirm(`Delete category "${formData.category}"?`)) {
+                                                    await removeCategory(activeTab, formData.category);
+                                                    setFormData(prev => ({ ...prev, category: '' }));
+                                                }
+                                            }}
+                                            className="action-btn delete-btn"
+                                            style={{ padding: '8px', marginBottom: '0' }}
+                                            title="Delete Category"
+                                        >
+                                            <Trash2 size={16} />
+                                        </button>
+                                    )}
+                                </div>
+                            )}
                         </div>
                         <div className="form-group" style={{ display: activeTab === 'custom' ? 'none' : 'block' }}>
-                            <label>Type</label>
-                            <select
-                                name="type"
-                                value={formData.type}
-                                onChange={handleInputChange}
-                            >
-                                <option value="Casual">Casual</option>
-                                <option value="Party Wear">Party Wear</option>
-                                <option value="Formal">Formal</option>
-                                <option value="Traditional">Traditional</option>
-                            </select>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
+                                <label style={{ marginBottom: 0 }}>Type</label>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setIsManualType(!isManualType);
+                                        setFormData(prev => ({ ...prev, type: !isManualType ? '' : 'Casual' }));
+                                    }}
+                                    style={{ background: 'none', border: 'none', color: '#ff4081', fontSize: '0.8rem', cursor: 'pointer', textDecoration: 'underline' }}
+                                >
+                                    {isManualType ? 'Select from List' : 'Enter Manually'}
+                                </button>
+                            </div>
+                            {isManualType ? (
+                                <input
+                                    type="text"
+                                    name="type"
+                                    value={formData.type}
+                                    onChange={handleInputChange}
+                                    placeholder="Enter Type"
+                                />
+                            ) : (
+                                <div style={{ display: 'flex', gap: '10px' }}>
+                                    <select
+                                        name="type"
+                                        value={formData.type}
+                                        onChange={handleInputChange}
+                                        style={{ flex: 1 }}
+                                    >
+                                        {productTypes.map(t => (
+                                            <option key={t} value={t}>{t}</option>
+                                        ))}
+                                    </select>
+                                    {formData.type && (
+                                        <button
+                                            type="button"
+                                            onClick={async () => {
+                                                if (window.confirm(`Delete type "${formData.type}"?`)) {
+                                                    await removeType(formData.type);
+                                                    setFormData(prev => ({ ...prev, type: 'Casual' }));
+                                                }
+                                            }}
+                                            className="action-btn delete-btn"
+                                            style={{ padding: '8px', marginBottom: '0' }}
+                                            title="Delete Type"
+                                        >
+                                            <Trash2 size={16} />
+                                        </button>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     </div>
 
