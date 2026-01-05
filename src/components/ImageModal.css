@@ -47,6 +47,65 @@
     transform: scale(1.2);
 }
 
+.image-modal-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    z-index: 1001;
+    font-size: 1.5rem;
+    transition: background 0.3s;
+    backdrop-filter: blur(4px);
+}
+
+.image-modal-nav:hover {
+    background: rgba(255, 255, 255, 0.4);
+}
+
+.image-modal-nav.prev {
+    left: 20px;
+}
+
+.image-modal-nav.next {
+    right: 20px;
+}
+
+.image-modal-counter {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: white;
+    font-size: 1rem;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 5px 15px;
+    border-radius: 20px;
+}
+
+@media (max-width: 768px) {
+    .image-modal-nav {
+        width: 40px;
+        height: 40px;
+    }
+
+    .image-modal-nav.prev {
+        left: 10px;
+    }
+
+    .image-modal-nav.next {
+        right: 10px;
+    }
+}
+
 @keyframes fadeIn {
     from {
         opacity: 0;

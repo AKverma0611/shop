@@ -16,6 +16,8 @@ const BabyCollection = () => {
         types: []
     });
 
+    const [showFilters, setShowFilters] = useState(false);
+
     // 1. Separate Baby products
     const babyProducts = useMemo(() => {
         return dynamicProducts.filter(p => p.section === 'baby');
@@ -42,16 +44,27 @@ const BabyCollection = () => {
 
     return (
         <div className="page-container container" style={{ padding: '40px 20px' }}>
-            <h1 className="section-title">Baby Collection</h1>
+            <div className="shop-header">
+                <h1 className="section-title">Baby Collection</h1>
+                <button
+                    className="mobile-filter-toggle"
+                    onClick={() => setShowFilters(!showFilters)}
+                >
+                    {showFilters ? 'Hide Filters' : 'Filter Options'}
+                </button>
+            </div>
+
             <p className="section-subtitle">Comfortable & Cute Outfits for your Little Ones</p>
 
             <div className="shop-layout">
-                <FilterSidebar
-                    activeFilters={activeFilters}
-                    onFilterChange={setActiveFilters}
-                    categories={babyCategories}
-                    types={productTypes}
-                />
+                <div className={`shop-sidebar ${showFilters ? 'show' : ''}`}>
+                    <FilterSidebar
+                        activeFilters={activeFilters}
+                        onFilterChange={setActiveFilters}
+                        categories={babyCategories}
+                        types={productTypes}
+                    />
+                </div>
                 <div className="shop-content">
                     {filteredProducts.length === 0 ? (
                         <div className="no-products">

@@ -16,6 +16,8 @@ const Shop = () => {
         types: []
     });
 
+    const [showFilters, setShowFilters] = useState(false);
+
     // 1. First, separate Girls products (base collection)
     const girlsProducts = useMemo(() => {
         return dynamicProducts.filter(p => !p.section || p.section === 'girls'); // Default to girls if no section
@@ -28,13 +30,6 @@ const Shop = () => {
             if (activeFilters.categories.length > 0 && !activeFilters.categories.includes(product.category)) {
                 return false;
             }
-            // Color Filter (Assuming product can have a color field, or we check description?)
-            // Note: The Admin form doesn't explicitly have 'Color' field, but it was in original data. 
-            // We might need to rely on 'details' or check if we added 'color' to admin.
-            // Wait, products.js had 'color'. Admin.jsx didn't have 'color' input! 
-            // I'll add a check, if 'color' exists in product. Or we can match details.
-            // For now, let's assume if it exists.
-
             // Type Filter
             if (activeFilters.types.length > 0 && !activeFilters.types.includes(product.type)) {
                 return false;
@@ -48,16 +43,27 @@ const Shop = () => {
 
     return (
         <div className="page-container container" style={{ padding: '40px 20px' }}>
-            <h1 className="section-title">Girls Collection</h1>
+            <div className="shop-header">
+                <h1 className="section-title">Girls Collection</h1>
+                <button
+                    className="mobile-filter-toggle"
+                    onClick={() => setShowFilters(!showFilters)}
+                >
+                    {showFilters ? 'Hide Filters' : 'Filter Options'}
+                </button>
+            </div>
+
             <p className="section-subtitle">Browse our latest collection</p>
 
             <div className="shop-layout">
-                <FilterSidebar
-                    activeFilters={activeFilters}
-                    onFilterChange={setActiveFilters}
-                    categories={girlsCategories}
-                    types={productTypes}
-                />
+                <div className={`shop-sidebar ${showFilters ? 'show' : ''}`}>
+                    <FilterSidebar
+                        activeFilters={activeFilters}
+                        onFilterChange={setActiveFilters}
+                        categories={girlsCategories}
+                        types={productTypes}
+                    />
+                </div>
                 <div className="shop-content">
                     {filteredProducts.length === 0 ? (
                         <div className="no-products">

@@ -30,19 +30,24 @@ export const ProductProvider = ({ children }) => {
         return () => unsubscribe();
     }, []);
 
-    const addProduct = async (productData, imageFile) => {
+    const addProduct = async (productData, imageFiles = []) => {
         try {
             console.log("Starting product add...");
-            let imageUrl = '';
-            if (imageFile) {
-                console.log("Uploading image...");
-                imageUrl = await uploadImageToCloudinary(imageFile);
+            let imageUrls = [];
+
+            // Handle multiple files
+            if (imageFiles && imageFiles.length > 0) {
+                console.log(`Uploading ${imageFiles.length} images...`);
+                // Process all uploads concurrently
+                const uploadPromises = Array.from(imageFiles).map(file => uploadImageToCloudinary(file));
+                imageUrls = await Promise.all(uploadPromises);
             }
 
             console.log("Adding to Firestore...");
             await addDoc(collection(db, "products"), {
                 ...productData,
-                image: imageUrl,
+                image: imageUrls.length > 0 ? imageUrls[0] : '', // Primary image for backward compatibility
+                images: imageUrls, // Array of all images
                 createdAt: serverTimestamp(),
                 price: Number(productData.price)
             });
@@ -65,15 +70,29 @@ export const ProductProvider = ({ children }) => {
         }
     };
 
-    const updateProduct = async (productId, productData, imageFile) => {
+    const updateProduct = async (productId, productData, newImageFiles = []) => {
         try {
             const productRef = doc(db, "products", productId);
             let updatedData = { ...productData };
 
-            if (imageFile) {
-                const imageUrl = await uploadImageToCloudinary(imageFile);
-                updatedData.image = imageUrl;
+            // If we have existing images in productData.images, ensure it's preserved
+            // (The caller should pass the 'images' array with currently kept URLs)
+            let finalImages = updatedData.images || [];
+
+            // If backward compatibility 'image' is needed and no 'images' array exists yet
+            if (finalImages.length === 0 && updatedData.image) {
+                finalImages = [updatedData.image];
             }
+
+            if (newImageFiles && newImageFiles.length > 0) {
+                const uploadPromises = Array.from(newImageFiles).map(file => uploadImageToCloudinary(file));
+                const newImageUrls = await Promise.all(uploadPromises);
+                finalImages = [...finalImages, ...newImageUrls];
+            }
+
+            updatedData.images = finalImages;
+            // Update primary image to be the first one
+            updatedData.image = finalImages.length > 0 ? finalImages[0] : '';
 
             // Ensure price is a number
             if (updatedData.price) {

@@ -15,17 +15,21 @@ const ShowcaseGallery = ({ images }) => {
     ];
 
     const displayItems = (images && images.length > 0) ? images : defaultItems;
+    // Duplicate items for continuous loop
+    const loopedItems = [...displayItems, ...displayItems];
 
     return (
         <div className="showcase-gallery">
-            {displayItems.map((item) => (
-                <div key={item.id} className="showcase-item">
-                    <img src={item.image} alt={item.title} className="showcase-img" />
-                    <div className="showcase-overlay">
-                        <h3 className="showcase-title">{item.title}</h3>
+            <div className="marquee-track">
+                {loopedItems.map((item, index) => (
+                    <div key={`${item.id}-${index}`} className="showcase-item">
+                        <img src={item.image} alt={item.title} className="showcase-img" />
+                        <div className="showcase-overlay">
+                            <h3 className="showcase-title">{item.title}</h3>
+                        </div>
                     </div>
-                </div>
-            ))}
+                ))}
+            </div>
         </div>
     );
 };

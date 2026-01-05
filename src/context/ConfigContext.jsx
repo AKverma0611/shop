@@ -11,7 +11,6 @@ export const useConfig = () => {
 export const ConfigProvider = ({ children }) => {
     const [promoBanner, setPromoBanner] = useState({
         text: '',
-        text: '',
         isActive: false
     });
     const [girlsCategories, setGirlsCategories] = useState([]);
@@ -25,7 +24,8 @@ export const ConfigProvider = ({ children }) => {
         const unsubscribe = onSnapshot(promoRef, (docSnap) => {
             if (docSnap.exists()) {
                 setPromoBanner(docSnap.data());
-                setPromoBanner(initialData);
+            } else {
+                setPromoBanner({ text: '', isActive: false });
             }
         });
 

@@ -9,17 +9,49 @@ export const ImageModalProvider = ({ children }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [imageSrc, setImageSrc] = useState('');
     const [imageAlt, setImageAlt] = useState('');
+    // Gallery support
+    const [galleryImages, setGalleryImages] = useState([]);
+    const [currentIndex, setCurrentIndex] = useState(0);
 
     const openModal = (src, alt) => {
         setImageSrc(src);
         setImageAlt(alt || 'Full screen image');
+        setGalleryImages([]); // Clear gallery if single image
         setIsOpen(true);
+    };
+
+    const openGallery = (images, startIndex = 0) => {
+        if (!images || images.length === 0) return;
+        setGalleryImages(images);
+        setCurrentIndex(startIndex);
+        // Set current source for backward compatibility / display
+        setImageSrc(images[startIndex]);
+        setImageAlt('Gallery Image');
+        setIsOpen(true);
+    };
+
+    const nextImage = () => {
+        if (galleryImages.length > 0) {
+            const nextIdx = (currentIndex + 1) % galleryImages.length;
+            setCurrentIndex(nextIdx);
+            setImageSrc(galleryImages[nextIdx]);
+        }
+    };
+
+    const prevImage = () => {
+        if (galleryImages.length > 0) {
+            const prevIdx = (currentIndex - 1 + galleryImages.length) % galleryImages.length;
+            setCurrentIndex(prevIdx);
+            setImageSrc(galleryImages[prevIdx]);
+        }
     };
 
     const closeModal = () => {
         setIsOpen(false);
         setImageSrc('');
         setImageAlt('');
+        setGalleryImages([]);
+        setCurrentIndex(0);
     };
 
     useEffect(() => {
@@ -57,7 +89,7 @@ export const ImageModalProvider = ({ children }) => {
     }, []);
 
     return (
-        <ImageModalContext.Provider value={{ isOpen, imageSrc, imageAlt, closeModal }}>
+        <ImageModalContext.Provider value={{ isOpen, imageSrc, imageAlt, closeModal, openGallery, nextImage, prevImage, galleryImages, currentIndex }}>
             {children}
             <ImageModal />
         </ImageModalContext.Provider>

@@ -50,8 +50,9 @@ const Admin = () => {
         isNew: true,
         isBestSeller: false
     });
-    const [imageFile, setImageFile] = useState(null);
-    const [imagePreview, setImagePreview] = useState(null);
+    const [imageFiles, setImageFiles] = useState([]);
+    const [newImages, setNewImages] = useState([]); // Array of objects { file, preview }
+    const [existingImages, setExistingImages] = useState([]); // Array of URLs string
 
     // const girlsCategories = ['Dresses', 'Gowns', 'Tops', 'Frocks', 'Sets', 'Lehenga'];
     // const babyCategories = ['Onesies', 'Rompers', 'Sets', 'Frocks', 'Accessories'];
@@ -118,15 +119,24 @@ const Admin = () => {
     };
 
     const handleImageChange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            setImageFile(file);
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setImagePreview(reader.result);
-            };
-            reader.readAsDataURL(file);
+        const files = Array.from(e.target.files);
+        if (files.length > 0) {
+            files.forEach(file => {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    setNewImages(prev => [...prev, { file, preview: reader.result }]);
+                };
+                reader.readAsDataURL(file);
+            });
         }
+    };
+
+    const removeNewImage = (index) => {
+        setNewImages(prev => prev.filter((_, i) => i !== index));
+    };
+
+    const removeExistingImage = (index) => {
+        setExistingImages(prev => prev.filter((_, i) => i !== index));
     };
 
     const resetForm = () => {
@@ -139,8 +149,8 @@ const Admin = () => {
             isNew: true,
             isBestSeller: false
         });
-        setImageFile(null);
-        setImagePreview(null);
+        setNewImages([]);
+        setExistingImages([]);
         setEditingProduct(null);
         setIsManualCategory(false);
         setIsManualType(false);
@@ -161,8 +171,15 @@ const Admin = () => {
         const currentCategories = activeTab === 'girls' ? girlsCategories : babyCategories;
         setIsManualCategory(!currentCategories.includes(product.category));
         setIsManualType(!productTypes.includes(product.type || 'Casual'));
-        setImagePreview(product.image);
-        // We don't set imageFile here unless they upload a new one
+        // Initialize existing images
+        let validImages = [];
+        if (product.images && product.images.length > 0) {
+            validImages = product.images;
+        } else if (product.image) {
+            validImages = [product.image];
+        }
+        setExistingImages(validImages);
+        setNewImages([]);
 
         // Scroll to form
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -224,13 +241,16 @@ const Admin = () => {
                 section: activeTab
             };
 
+            const imageFilesToUpload = newImages.map(img => img.file);
+
             if (activeTab === 'custom') {
-                if (!imageFile) {
+                if (imageFilesToUpload.length === 0) {
                     alert("Please select an image");
                     setLoading(false);
                     return;
                 }
-                await addGalleryImage(imageFile, customOrderTitle);
+                // Custom gallery only takes one image for now, take the first one
+                await addGalleryImage(imageFilesToUpload[0], customOrderTitle);
                 setSuccess("Gallery image added successfully!");
                 setCustomOrderTitle('');
             } else {
@@ -247,10 +267,10 @@ const Admin = () => {
                 }
 
                 if (editingProduct) {
-                    await updateProduct(editingProduct.id, productData, imageFile);
+                    await updateProduct(editingProduct.id, { ...productData, images: existingImages }, imageFilesToUpload);
                     setSuccess("Product updated successfully!");
                 } else {
-                    await addProduct(productData, imageFile);
+                    await addProduct(productData, imageFilesToUpload);
                     setSuccess("Product added successfully!");
                 }
             }
@@ -356,18 +376,30 @@ const Admin = () => {
                     <div className="form-group">
                         <label>Product Image</label>
                         <div className="image-upload-container">
-                            {imagePreview ? (
-                                <div className="image-preview">
-                                    <img src={imagePreview} alt="Preview" />
-                                    <button type="button" onClick={() => { setImageFile(null); setImagePreview(null) }} className="remove-image">×</button>
+                            <div className="image-upload-container" style={{ display: 'block' }}>
+                                <div className="images-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '10px', marginBottom: '15px' }}>
+                                    {/* Existing Images */}
+                                    {existingImages.map((url, index) => (
+                                        <div key={`existing-${index}`} className="image-preview" style={{ position: 'relative', height: '100px' }}>
+                                            <img src={url} alt={`Existing ${index}`} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }} />
+                                            <button type="button" onClick={() => removeExistingImage(index)} className="remove-image" style={{ position: 'absolute', top: '-5px', right: '-5px', background: 'red', color: 'white', borderRadius: '50%', width: '20px', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer' }}>×</button>
+                                        </div>
+                                    ))}
+                                    {/* New Images */}
+                                    {newImages.map((img, index) => (
+                                        <div key={`new-${index}`} className="image-preview" style={{ position: 'relative', height: '100px' }}>
+                                            <img src={img.preview} alt={`New ${index}`} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px', border: '2px dashed #ff4081' }} />
+                                            <button type="button" onClick={() => removeNewImage(index)} className="remove-image" style={{ position: 'absolute', top: '-5px', right: '-5px', background: 'red', color: 'white', borderRadius: '50%', width: '20px', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer' }}>×</button>
+                                        </div>
+                                    ))}
+
+                                    <label className="upload-box" style={{ height: '100px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', border: '2px dashed #ccc', borderRadius: '8px', cursor: 'pointer' }}>
+                                        <Upload size={24} color="#888" />
+                                        <span style={{ fontSize: '0.8rem', color: '#888' }}>Add Photo</span>
+                                        <input type="file" accept="image/*" multiple onChange={handleImageChange} style={{ display: 'none' }} />
+                                    </label>
                                 </div>
-                            ) : (
-                                <label className="upload-box">
-                                    <Upload size={24} />
-                                    <span>Click to upload image</span>
-                                    <input type="file" accept="image/*" onChange={handleImageChange} required={!editingProduct} />
-                                </label>
-                            )}
+                            </div>
                         </div>
                     </div>
 
