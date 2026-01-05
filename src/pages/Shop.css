@@ -23,3 +23,41 @@
         border-radius: 10px;
     }
 }
+
+.shop-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    width: 100%;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+    .shop-header {
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .shop-layout {
+        flex-direction: column;
+        /* Stack vertically on mobile */
+    }
+
+    .mobile-filter-toggle {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        position: absolute;
+        right: 0;
+        top: 0;
+
+        padding: 5px;
+        background: transparent;
+        color: #333;
+        border: none;
+        cursor: pointer;
+    }
+}

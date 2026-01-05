@@ -3,6 +3,7 @@ import ProductGrid from '../components/ProductGrid';
 import FilterSidebar from '../components/FilterSidebar';
 import { useProducts } from '../context/ProductContext';
 import { useConfig } from '../context/ConfigContext';
+import { Filter } from 'lucide-react';
 import './Shop.css';
 
 const BabyCollection = () => {
@@ -46,12 +47,6 @@ const BabyCollection = () => {
         <div className="page-container container" style={{ padding: '40px 20px' }}>
             <div className="shop-header">
                 <h1 className="section-title">Baby Collection</h1>
-                <button
-                    className="mobile-filter-toggle"
-                    onClick={() => setShowFilters(!showFilters)}
-                >
-                    {showFilters ? 'Hide Filters' : 'Filter Options'}
-                </button>
             </div>
 
             <p className="section-subtitle">Comfortable & Cute Outfits for your Little Ones</p>
