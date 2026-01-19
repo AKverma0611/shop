@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Heart, MessageCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Heart, MessageCircle, ChevronLeft, ChevronRight, Volume2, VolumeX, Play } from 'lucide-react';
 import { useWishlist } from '../context/WishlistContext';
 import { useImageModal } from '../context/ImageModalContext';
 import './ProductCard.css';
@@ -14,28 +14,87 @@ const ProductCard = ({ product }) => {
     const [touchStart, setTouchStart] = useState(null);
     const [touchEnd, setTouchEnd] = useState(null);
 
-    // Get all valid images
-    const images = product.images && product.images.length > 0 ? product.images : [product.image];
-    const currentImage = images[currentImageIndex] || product.image;
+    // Video State
+    const [isMuted, setIsMuted] = useState(true);
+    const [isPlaying, setIsPlaying] = useState(false);
+    const videoRef = React.useRef(null);
+
+    const toggleMute = (e) => {
+        e.stopPropagation();
+        setIsMuted(!isMuted);
+    };
+
+    const togglePlay = (e) => {
+        e.stopPropagation();
+        if (videoRef.current) {
+            if (isPlaying) {
+                videoRef.current.pause();
+            } else {
+                videoRef.current.play();
+            }
+            setIsPlaying(!isPlaying);
+        }
+    };
+
+    // Get all valid media (images + video)
+    // Legacy support: 'images' might contain mixed media now.
+    // 'video' field is legacy. check if it's already in 'images' before adding.
+
+    let media = product.images && product.images.length > 0 ? [...product.images] : (product.image ? [product.image] : []);
+
+    if (product.video && !media.includes(product.video)) {
+        media.push(product.video);
+    }
+
+    // Filter out empty strings/nulls
+    media = media.filter(item => item && item.trim() !== '');
+
+    // Safety check for empty media
+    if (media.length === 0) {
+        media = ['https://placehold.co/400x500?text=No+Image'];
+    }
+
+    const currentMedia = media[currentImageIndex];
+    // DEBUG: Log the media URL to see why detection might fail
+    if (product.name === 'test' || currentMedia?.includes('cloudinary')) {
+        console.log('ProductCard Media:', { name: product.name, currentMedia, isVideoCheck: currentMedia?.endsWith('.mp4') || currentMedia?.includes('/video/') });
+    }
+
+    const isVideo = currentMedia?.endsWith('.mp4') || currentMedia?.endsWith('.webm') || currentMedia?.includes('/video/upload/') || currentMedia?.includes('/video/'); // added /video/ just in case
+
+    // Auto-play effect
+    React.useEffect(() => {
+        if (isVideo && videoRef.current) {
+            // Try to play immediately
+            const playPromise = videoRef.current.play();
+            if (playPromise !== undefined) {
+                playPromise
+                    .then(() => setIsPlaying(true))
+                    .catch(() => setIsPlaying(false));
+            }
+        }
+    }, [currentImageIndex, isVideo]); // Re-run when slide changes
+
+
 
     const isWishlisted = isInWishlist(product.id);
     const whatsappUrl = `https://wa.me/916264246210?text=${encodeURIComponent(
-        `Hello! I want to order this item: \n\n*Product Name:* ${product.name} \n*Price:* ₹${product.price} \n*Image:* ${currentImage}\n\nIs it available?`
+        `Hello! I want to order this item: \n\n*Product Name:* ${product.name} \n*Price:* ₹${product.price} \n*Image:* ${media[0]}\n\nIs it available?`
     )}`;
 
     // Navigation Logic
     const nextImage = (e) => {
         if (e) e.stopPropagation();
-        setCurrentImageIndex((prev) => (prev + 1) % images.length);
+        setCurrentImageIndex((prev) => (prev + 1) % media.length);
     };
 
     const prevImage = (e) => {
         if (e) e.stopPropagation();
-        setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
+        setCurrentImageIndex((prev) => (prev - 1 + media.length) % media.length);
     };
 
     const handleImageClick = () => {
-        openGallery(images, currentImageIndex);
+        openGallery(media, currentImageIndex);
     };
 
     // Touch Handlers
@@ -64,6 +123,21 @@ const ProductCard = ({ product }) => {
         }
     };
 
+    const getPosterUrl = (url) => {
+        if (!url) return '';
+        const cleanUrl = url.split('#')[0];
+        // Cloudinary specific: if it is a video, changing extension to .jpg generates a thumbnail
+        if (cleanUrl.includes('cloudinary') || cleanUrl.includes('/video/')) {
+            if (cleanUrl.match(/\.(mp4|webm|mov|mkv)$/i)) {
+                // Insert so_0 for start offset (first frame) to avoid blank/black thumbnails if middle is empty
+                let thumbUrl = cleanUrl.replace('/upload/', '/upload/so_0/');
+                return thumbUrl.replace(/\.(mp4|webm|mov|mkv)$/i, '.jpg');
+            }
+            return cleanUrl + '.jpg';
+        }
+        return '';
+    };
+
     return (
         <div className="product-card">
             <div
@@ -73,9 +147,75 @@ const ProductCard = ({ product }) => {
                 onTouchMove={onTouchMove}
                 onTouchEnd={onTouchEnd}
             >
-                <img src={currentImage} alt={product.name} className="product-image" />
+                {isVideo ? (
+                    <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}>
+                        <video
+                            ref={videoRef}
+                            src={currentMedia ? currentMedia.split('#')[0] : ''}
+                            className="product-image"
+                            autoPlay
+                            muted={isMuted}
+                            loop
+                            playsInline
+                            style={{ objectFit: 'cover' }}
+                            onPlay={() => setIsPlaying(true)}
+                            onPause={() => setIsPlaying(false)}
+                            poster={getPosterUrl(currentMedia)}
+                        />
 
-                {images.length > 1 && (
+                        {/* Mute Button */}
+                        <button
+                            onClick={toggleMute}
+                            style={{
+                                position: 'absolute',
+                                bottom: '10px',
+                                right: '10px',
+                                background: 'rgba(0,0,0,0.6)',
+                                border: 'none',
+                                borderRadius: '50%',
+                                padding: '8px',
+                                cursor: 'pointer',
+                                color: 'white',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                zIndex: 10
+                            }}
+                        >
+                            {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
+                        </button>
+
+                        {/* Play Overlay (only if paused) */}
+                        {!isPlaying && (
+                            <div
+                                style={{
+                                    position: 'absolute',
+                                    inset: 0,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    background: 'rgba(0,0,0,0.2)',
+                                    cursor: 'pointer',
+                                    zIndex: 5
+                                }}
+                                onClick={togglePlay}
+                            >
+                                <div style={{
+                                    background: 'rgba(255, 255, 255, 0.8)',
+                                    borderRadius: '50%',
+                                    padding: '15px',
+                                    display: 'flex'
+                                }}>
+                                    <Play size={32} fill="black" color="black" style={{ marginLeft: '4px' }} />
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                ) : (
+                    <img src={currentMedia} alt={product.name} className="product-image" />
+                )}
+
+                {media.length > 1 && (
                     <>
                         <button className="slider-nav prev" onClick={prevImage}>
                             <ChevronLeft size={20} />
@@ -84,7 +224,7 @@ const ProductCard = ({ product }) => {
                             <ChevronRight size={20} />
                         </button>
                         <div className="slider-dots">
-                            {images.map((_, idx) => (
+                            {media.map((_, idx) => (
                                 <span
                                     key={idx}
                                     className={`slider-dot ${idx === currentImageIndex ? 'active' : ''}`}

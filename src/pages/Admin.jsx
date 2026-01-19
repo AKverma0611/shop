@@ -1,12 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useProducts } from '../context/ProductContext';
 import { useReviews } from '../context/ReviewsContext';
-import { Upload, CheckCircle, Trash2, Edit2, X } from 'lucide-react';
+import { Upload, CheckCircle, Trash2, Edit2, X, Video } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useCustomOrders } from '../context/CustomOrdersContext';
 import { useConfig } from '../context/ConfigContext';
 import { auth } from '../firebase';
 import { signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'firebase/auth';
+
+import ImageCropper from '../components/ImageCropper';
+import ProductPreviewModal from '../components/ProductPreviewModal';
+import { Eye } from 'lucide-react';
 import './Admin.css';
 
 const Admin = () => {
@@ -50,9 +54,12 @@ const Admin = () => {
         isNew: true,
         isBestSeller: false
     });
-    const [imageFiles, setImageFiles] = useState([]);
-    const [newImages, setNewImages] = useState([]); // Array of objects { file, preview }
-    const [existingImages, setExistingImages] = useState([]); // Array of URLs string
+    const [newMedia, setNewMedia] = useState([]); // Array of objects { file, preview, type: 'image' | 'video' }
+    const [existingMedia, setExistingMedia] = useState([]); // Array of URLs string
+    const [cropImage, setCropImage] = useState(null); // The image to be cropped
+    const [showPreview, setShowPreview] = useState(false);
+
+
 
     // const girlsCategories = ['Dresses', 'Gowns', 'Tops', 'Frocks', 'Sets', 'Lehenga'];
     // const babyCategories = ['Onesies', 'Rompers', 'Sets', 'Frocks', 'Accessories'];
@@ -118,25 +125,63 @@ const Admin = () => {
         }));
     };
 
-    const handleImageChange = (e) => {
-        const files = Array.from(e.target.files);
-        if (files.length > 0) {
-            files.forEach(file => {
-                const reader = new FileReader();
-                reader.onloadend = () => {
-                    setNewImages(prev => [...prev, { file, preview: reader.result }]);
-                };
-                reader.readAsDataURL(file);
-            });
+    const handleMediaChange = (e) => {
+        if (e.target.files && e.target.files.length > 0) {
+            const files = Array.from(e.target.files);
+
+            // If multiple files, add them directly to save time/confusion (Bulk Upload Mode)
+            if (files.length > 1) {
+                files.forEach(file => {
+                    const type = file.type.startsWith('video/') ? 'video' : 'image';
+                    setNewMedia(prev => [...prev, {
+                        file,
+                        preview: URL.createObjectURL(file) + (type === 'video' ? '#.mp4' : ''),
+                        type
+                    }]);
+                });
+            } else {
+                // Single file mode - check for crop if image
+                const file = files[0];
+                if (file.type.startsWith('video/')) {
+                    setNewMedia(prev => [...prev, {
+                        file,
+                        preview: URL.createObjectURL(file) + '#.mp4',
+                        type: 'video'
+                    }]);
+                } else {
+                    // Single Image - Offer Crop
+                    const reader = new FileReader();
+                    reader.addEventListener('load', () => {
+                        setCropImage({
+                            src: reader.result,
+                            file: file
+                        });
+                    });
+                    reader.readAsDataURL(file);
+                }
+            }
+            e.target.value = null;
         }
     };
 
-    const removeNewImage = (index) => {
-        setNewImages(prev => prev.filter((_, i) => i !== index));
+    const onCropDone = (croppedBlob) => {
+        const uniqueId = Date.now();
+        const file = new File([croppedBlob], `cropped-image-${uniqueId}.jpeg`, { type: 'image/jpeg' });
+        const preview = URL.createObjectURL(croppedBlob);
+        setNewMedia(prev => [...prev, { file, preview, type: 'image' }]);
+        setCropImage(null);
     };
 
-    const removeExistingImage = (index) => {
-        setExistingImages(prev => prev.filter((_, i) => i !== index));
+    const onCropCancel = () => {
+        setCropImage(null);
+    };
+
+    const removeNewMedia = (index) => {
+        setNewMedia(prev => prev.filter((_, i) => i !== index));
+    };
+
+    const removeExistingMedia = (index) => {
+        setExistingMedia(prev => prev.filter((_, i) => i !== index));
     };
 
     const resetForm = () => {
@@ -149,8 +194,8 @@ const Admin = () => {
             isNew: true,
             isBestSeller: false
         });
-        setNewImages([]);
-        setExistingImages([]);
+        setNewMedia([]);
+        setExistingMedia([]);
         setEditingProduct(null);
         setIsManualCategory(false);
         setIsManualType(false);
@@ -172,14 +217,23 @@ const Admin = () => {
         setIsManualCategory(!currentCategories.includes(product.category));
         setIsManualType(!productTypes.includes(product.type || 'Casual'));
         // Initialize existing images
-        let validImages = [];
+        // Initialize existing images/media
+        let validMedia = [];
         if (product.images && product.images.length > 0) {
-            validImages = product.images;
+            validMedia = [...product.images];
         } else if (product.image) {
-            validImages = [product.image];
+            validMedia = [product.image];
         }
-        setExistingImages(validImages);
-        setNewImages([]);
+
+        // Check for separate video field in legacy products and append it? 
+        // Or technically insert it where it belongs? We don't know where it belongs if it was separate.
+        // Let's just append it to the end for legacy support in the specific "edit" view.
+        if (product.video) {
+            validMedia.push(product.video);
+        }
+
+        setExistingMedia(validMedia);
+        setNewMedia([]);
 
         // Scroll to form
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -241,16 +295,16 @@ const Admin = () => {
                 section: activeTab
             };
 
-            const imageFilesToUpload = newImages.map(img => img.file);
+            const mediaFilesToUpload = newMedia.map(m => m.file);
 
             if (activeTab === 'custom') {
-                if (imageFilesToUpload.length === 0) {
+                if (mediaFilesToUpload.length === 0) {
                     alert("Please select an image");
                     setLoading(false);
                     return;
                 }
                 // Custom gallery only takes one image for now, take the first one
-                await addGalleryImage(imageFilesToUpload[0], customOrderTitle);
+                await addGalleryImage(mediaFilesToUpload[0], customOrderTitle);
                 setSuccess("Gallery image added successfully!");
                 setCustomOrderTitle('');
             } else {
@@ -267,10 +321,17 @@ const Admin = () => {
                 }
 
                 if (editingProduct) {
-                    await updateProduct(editingProduct.id, { ...productData, images: existingImages }, imageFilesToUpload);
+                    // Update Product: existingMedia contains URLs we want to KEEP. newMediaFiles are files to upload.
+                    // We need to pass them to context. The context should ideally just take "final list of URLs" + "files to upload".
+                    // But the current context `updateProduct` logic separates them.
+
+                    // Actually, to support ORDER, we must change how we pass data. 
+                    // But changing context signature is risky without verifying Context code. 
+                    // Let's pass the new Unified args.
+                    await updateProduct(editingProduct.id, { ...productData, images: existingMedia }, mediaFilesToUpload);
                     setSuccess("Product updated successfully!");
                 } else {
-                    await addProduct(productData, imageFilesToUpload);
+                    await addProduct(productData, mediaFilesToUpload);
                     setSuccess("Product added successfully!");
                 }
             }
@@ -374,29 +435,47 @@ const Admin = () => {
 
                 <form onSubmit={handleSubmit} className="product-form" style={{ display: (activeTab === 'reviews' || activeTab === 'settings') ? 'none' : 'block' }}>
                     <div className="form-group">
-                        <label>Product Image</label>
+                        <label>Product Media (Photos & Videos)</label>
                         <div className="image-upload-container">
                             <div className="image-upload-container" style={{ display: 'block' }}>
                                 <div className="images-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '10px', marginBottom: '15px' }}>
-                                    {/* Existing Images */}
-                                    {existingImages.map((url, index) => (
-                                        <div key={`existing-${index}`} className="image-preview" style={{ position: 'relative', height: '100px' }}>
-                                            <img src={url} alt={`Existing ${index}`} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }} />
-                                            <button type="button" onClick={() => removeExistingImage(index)} className="remove-image" style={{ position: 'absolute', top: '-5px', right: '-5px', background: 'red', color: 'white', borderRadius: '50%', width: '20px', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer' }}>×</button>
-                                        </div>
-                                    ))}
-                                    {/* New Images */}
-                                    {newImages.map((img, index) => (
+
+                                    {/* Existing Media */}
+                                    {existingMedia.map((url, index) => {
+                                        const isVideo = url.endsWith('.mp4') || url.endsWith('.webm') || url.includes('/video/');
+                                        return (
+                                            <div key={`existing-${index}`} className="image-preview" style={{ position: 'relative', height: '100px' }}>
+                                                {isVideo ? (
+                                                    <video src={url} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }} />
+                                                ) : (
+                                                    <img src={url} alt={`Existing ${index}`} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }} />
+                                                )}
+                                                {isVideo && <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', color: 'white', textShadow: '0 0 4px black', pointerEvents: 'none' }}>VIDEO</div>}
+
+                                                <button type="button" onClick={() => removeExistingMedia(index)} className="remove-image" style={{ position: 'absolute', top: '-5px', right: '-5px', background: 'red', color: 'white', borderRadius: '50%', width: '20px', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer', zIndex: 2 }}>×</button>
+                                            </div>
+                                        );
+                                    })}
+
+                                    {/* New Media */}
+                                    {newMedia.map((item, index) => (
                                         <div key={`new-${index}`} className="image-preview" style={{ position: 'relative', height: '100px' }}>
-                                            <img src={img.preview} alt={`New ${index}`} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px', border: '2px dashed #ff4081' }} />
-                                            <button type="button" onClick={() => removeNewImage(index)} className="remove-image" style={{ position: 'absolute', top: '-5px', right: '-5px', background: 'red', color: 'white', borderRadius: '50%', width: '20px', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer' }}>×</button>
+                                            {item.type === 'video' ? (
+                                                <video src={item.preview} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }} />
+                                            ) : (
+                                                <img src={item.preview} alt={`New ${index}`} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px', border: '2px dashed #ff4081' }} />
+                                            )}
+                                            {item.type === 'video' && <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', color: 'white', textShadow: '0 0 4px black', pointerEvents: 'none' }}>NEW</div>}
+
+                                            <button type="button" onClick={() => removeNewMedia(index)} className="remove-image" style={{ position: 'absolute', top: '-5px', right: '-5px', background: 'red', color: 'white', borderRadius: '50%', width: '20px', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer', zIndex: 2 }}>×</button>
                                         </div>
                                     ))}
 
                                     <label className="upload-box" style={{ height: '100px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', border: '2px dashed #ccc', borderRadius: '8px', cursor: 'pointer' }}>
                                         <Upload size={24} color="#888" />
-                                        <span style={{ fontSize: '0.8rem', color: '#888' }}>Add Photo</span>
-                                        <input type="file" accept="image/*" multiple onChange={handleImageChange} style={{ display: 'none' }} />
+                                        <span style={{ fontSize: '0.8rem', color: '#888' }}>Add Media</span>
+                                        <span style={{ fontSize: '0.7rem', color: '#aaa' }}>(Photo/Video)</span>
+                                        <input type="file" accept="image/*,video/*" multiple onChange={handleMediaChange} style={{ display: 'none' }} />
                                     </label>
                                 </div>
                             </div>
@@ -584,9 +663,19 @@ const Admin = () => {
                         </label>
                     </div>
 
-                    <button type="submit" className="submit-btn" disabled={loading}>
-                        {loading ? (editingProduct ? 'Updating...' : 'Uploading...') : (activeTab === 'custom' ? 'Add Image' : (editingProduct ? 'Update Product' : 'Add Product'))}
-                    </button>
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                        <button
+                            type="button"
+                            className="submit-btn"
+                            onClick={() => setShowPreview(true)}
+                            style={{ backgroundColor: '#2196F3', flex: 1 }}
+                        >
+                            <Eye size={18} style={{ marginRight: '8px' }} /> See Preview
+                        </button>
+                        <button type="submit" className="submit-btn" disabled={loading} style={{ flex: 2 }}>
+                            {loading ? (editingProduct ? 'Updating...' : 'Uploading...') : (activeTab === 'custom' ? 'Add Image' : (editingProduct ? 'Update Product' : 'Add Product'))}
+                        </button>
+                    </div>
 
                     {success && <div className="success-message"><CheckCircle size={20} /> {success}</div>}
                 </form>
@@ -710,6 +799,28 @@ const Admin = () => {
                     </div>
                 </>
             )} {/* End of Product Tab Logic */}
+            {/* End of Product Tab Logic */}
+
+            {cropImage && (
+                <ImageCropper
+                    image={cropImage.src}
+                    onCropDone={onCropDone}
+                    onCancel={onCropCancel}
+                />
+            )}
+
+            {showPreview && (
+                <ProductPreviewModal
+                    product={{
+                        ...formData,
+                        id: 'preview', // dummy id
+                        images: [...existingMedia, ...newMedia.map(n => n.preview)],
+                        image: (existingMedia.length > 0 ? existingMedia[0] : (newMedia.length > 0 ? newMedia[0].preview : '')),
+                        video: '' // Videos are now inside images
+                    }}
+                    onClose={() => setShowPreview(false)}
+                />
+            )}
         </div>
     );
 };

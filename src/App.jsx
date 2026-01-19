@@ -12,6 +12,7 @@ import WhatsAppButton from './components/WhatsAppButton';
 import Admin from './pages/Admin';
 import BabyCollection from './pages/BabyCollection';
 import Wishlist from './pages/Wishlist';
+import TermsAndConditions from './pages/TermsAndConditions';
 import { ProductProvider } from './context/ProductContext';
 import { ReviewsProvider } from './context/ReviewsContext';
 import { ImageModalProvider } from './context/ImageModalContext';
@@ -41,6 +42,7 @@ function App() {
                           <Route path="/custom-orders" element={<CustomOrders />} />
                           <Route path="/about" element={<About />} />
                           <Route path="/contact" element={<Contact />} />
+                          <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
                           <Route path="/admin" element={<Admin />} />
                         </Routes>
                       </main>

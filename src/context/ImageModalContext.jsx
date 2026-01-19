@@ -67,6 +67,9 @@ export const ImageModalProvider = ({ children }) => {
 
                 if (isLogo) return;
 
+                // FIX: Ignore images inside ProductCard because they have their own gallery handler
+                if (e.target.closest('.product-image-container')) return;
+
                 // If the image is inside a button or link that should perform another action, 
                 // we might want to be careful. But the user said "full website me jo img h".
                 // We will prevent default to stop link navigation for image clicks.
@@ -91,7 +94,16 @@ export const ImageModalProvider = ({ children }) => {
     return (
         <ImageModalContext.Provider value={{ isOpen, imageSrc, imageAlt, closeModal, openGallery, nextImage, prevImage, galleryImages, currentIndex }}>
             {children}
-            <ImageModal />
+            <ImageModal
+                isOpen={isOpen}
+                imageSrc={imageSrc}
+                imageAlt={imageAlt}
+                closeModal={closeModal}
+                galleryImages={galleryImages}
+                nextImage={nextImage}
+                prevImage={prevImage}
+                currentIndex={currentIndex}
+            />
         </ImageModalContext.Provider>
     );
 };

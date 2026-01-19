@@ -18,6 +18,7 @@ const Footer = () => {
                         <li><a href="/shop">Shop Collection</a></li>
                         <li><a href="/custom-orders">Custom Orders</a></li>
                         <li><a href="/about">About Us</a></li>
+                        <li><a href="/terms-and-conditions">Terms & Conditions</a></li>
                     </ul>
                 </div>
 
