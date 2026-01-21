@@ -146,13 +146,13 @@
     color: #ccc;
     transition: all 0.3s ease;
     z-index: 2;
-    opacity: 0;
-    transform: translateX(10px);
+    opacity: 1;
+    transform: translateX(0);
 }
 
 .product-card:hover .wishlist-btn {
-    opacity: 1;
-    transform: translateX(0);
+    background: #fff0f3;
+    color: #ff6b6b;
 }
 
 .wishlist-btn:hover {

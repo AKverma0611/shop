@@ -26,7 +26,7 @@ const Footer = () => {
                     <h4>Contact Us</h4>
                     <ul>
                         <li><Phone size={16} /> +91 62642 46210</li>
-                        <li><Mail size={16} /> hello@khushicloset.com</li>
+                        <li><Mail size={16} /> khushicloset@gmail.com</li>
                         <li><Instagram size={16} /> @khushi__closet</li>
                     </ul>
                 </div>

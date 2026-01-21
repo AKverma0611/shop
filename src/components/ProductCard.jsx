@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { Heart, MessageCircle, ChevronLeft, ChevronRight, Volume2, VolumeX, Play } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useWishlist } from '../context/WishlistContext';
-import { useImageModal } from '../context/ImageModalContext';
 import './ProductCard.css';
 
 const ProductCard = ({ product }) => {
+    const navigate = useNavigate();
     const { toggleWishlist, isInWishlist } = useWishlist();
-    const { openGallery } = useImageModal();
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     // Remove individual hover state dependency for rendering, handle via CSS for cleaner mobile support
 
@@ -55,10 +55,7 @@ const ProductCard = ({ product }) => {
     }
 
     const currentMedia = media[currentImageIndex];
-    // DEBUG: Log the media URL to see why detection might fail
-    if (product.name === 'test' || currentMedia?.includes('cloudinary')) {
-        console.log('ProductCard Media:', { name: product.name, currentMedia, isVideoCheck: currentMedia?.endsWith('.mp4') || currentMedia?.includes('/video/') });
-    }
+
 
     const isVideo = currentMedia?.endsWith('.mp4') || currentMedia?.endsWith('.webm') || currentMedia?.includes('/video/upload/') || currentMedia?.includes('/video/'); // added /video/ just in case
 
@@ -94,7 +91,7 @@ const ProductCard = ({ product }) => {
     };
 
     const handleImageClick = () => {
-        openGallery(media, currentImageIndex);
+        navigate(`/product/${product.id}`);
     };
 
     // Touch Handlers
@@ -245,10 +242,10 @@ const ProductCard = ({ product }) => {
             </div>
             <div className="product-info">
                 <div className="product-category">{product.category}</div>
-                <h3 className="product-title">{product.name}</h3>
+                <h3 className="product-title" onClick={() => navigate(`/product/${product.id}`)} style={{ cursor: 'pointer' }}>{product.name}</h3>
                 <div className="product-price">₹{product.price}</div>
                 <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="btn btn-secondary btn-sm btn-block">
-                    <MessageCircle size={16} /> Order on WhatsApp
+                    <MessageCircle size={16} /> Order Now
                 </a>
             </div>
         </div>

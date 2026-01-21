@@ -26,15 +26,27 @@
     background: linear-gradient(to left, white, transparent);
 }
 
+/* CSS Animation removed for JS-based scrolling */
 .marquee-track {
     display: flex;
     gap: 20px;
     width: max-content;
-    animation: scroll 40s linear infinite;
+    overflow-x: auto;
+    scrollbar-width: none;
+    /* Firefox */
+    -ms-overflow-style: none;
+    /* IE/Edge */
+    cursor: grab;
+    padding-left: 0;
 }
 
-.showcase-gallery:hover .marquee-track {
-    animation-play-state: paused;
+.marquee-track::-webkit-scrollbar {
+    display: none;
+    /* Chrome/Safari */
+}
+
+.marquee-track:active {
+    cursor: grabbing;
 }
 
 .showcase-item {
@@ -46,6 +58,7 @@
     flex-shrink: 0;
     cursor: pointer;
     box-shadow: var(--shadow-md);
+    /* user-select: none; To prevent image dragging conflict */
 }
 
 .showcase-img {
@@ -53,6 +66,7 @@
     height: 100%;
     object-fit: cover;
     transition: transform 0.5s ease;
+    user-select: none;
 }
 
 .showcase-item:hover .showcase-img {
@@ -82,14 +96,4 @@
     font-size: 1.5rem;
     color: white;
     text-align: center;
-}
-
-@keyframes scroll {
-    0% {
-        transform: translateX(0);
-    }
-
-    100% {
-        transform: translateX(-50%);
-    }
 }

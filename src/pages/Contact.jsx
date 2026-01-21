@@ -51,7 +51,7 @@ ${formData.message}`;
                         <Mail className="info-icon" />
                         <div>
                             <h3>Email</h3>
-                            <p>hello@khushicloset.com</p>
+                            <p>khushicloset@gmail.com</p>
                         </div>
                     </div>
                     <div className="info-item">

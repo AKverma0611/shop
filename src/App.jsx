@@ -13,6 +13,7 @@ import Admin from './pages/Admin';
 import BabyCollection from './pages/BabyCollection';
 import Wishlist from './pages/Wishlist';
 import TermsAndConditions from './pages/TermsAndConditions';
+import ProductDetails from './pages/ProductDetails';
 import { ProductProvider } from './context/ProductContext';
 import { ReviewsProvider } from './context/ReviewsContext';
 import { ImageModalProvider } from './context/ImageModalContext';
@@ -37,6 +38,7 @@ function App() {
                         <Routes>
                           <Route path="/" element={<Home />} />
                           <Route path="/shop" element={<Shop />} />
+                          <Route path="/product/:id" element={<ProductDetails />} />
                           <Route path="/baby-collection" element={<BabyCollection />} />
                           <Route path="/wishlist" element={<Wishlist />} />
                           <Route path="/custom-orders" element={<CustomOrders />} />
