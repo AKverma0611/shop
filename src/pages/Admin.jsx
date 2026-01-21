@@ -52,7 +52,9 @@ const Admin = () => {
         details: '',
         type: 'Casual',
         isNew: true,
-        isBestSeller: false
+        isBestSeller: false,
+        isSpecialOffer: false,
+        discountPrice: ''
     });
     const [newMedia, setNewMedia] = useState([]); // Array of objects { file, preview, type: 'image' | 'video' }
     const [existingMedia, setExistingMedia] = useState([]); // Array of URLs string
@@ -192,7 +194,9 @@ const Admin = () => {
             details: '',
             type: 'Casual',
             isNew: true,
-            isBestSeller: false
+            isBestSeller: false,
+            isSpecialOffer: false,
+            discountPrice: ''
         });
         setNewMedia([]);
         setExistingMedia([]);
@@ -210,7 +214,9 @@ const Admin = () => {
             details: product.details || '',
             type: product.type || 'Casual',
             isNew: product.isNew || false,
-            isBestSeller: product.isBestSeller || false
+            isBestSeller: product.isBestSeller || false,
+            isSpecialOffer: product.isSpecialOffer || false,
+            discountPrice: product.discountPrice || ''
         });
 
         const currentCategories = activeTab === 'girls' ? girlsCategories : babyCategories;
@@ -505,6 +511,33 @@ const Admin = () => {
                                 required={activeTab !== 'custom'}
                             />
                         </div>
+                    </div>
+
+                    <div className="form-row" style={{ display: activeTab === 'custom' ? 'none' : 'flex' }}>
+                        <div className="form-group">
+                            <label className="checkbox-label">
+                                <input
+                                    type="checkbox"
+                                    name="isSpecialOffer"
+                                    checked={formData.isSpecialOffer}
+                                    onChange={handleInputChange}
+                                />
+                                Special Offer Checkbox
+                            </label>
+                        </div>
+                        {formData.isSpecialOffer && (
+                            <div className="form-group">
+                                <label>Discounted Price (₹)</label>
+                                <input
+                                    type="number"
+                                    name="discountPrice"
+                                    value={formData.discountPrice}
+                                    onChange={handleInputChange}
+                                    placeholder="e.g. 999"
+                                    required={formData.isSpecialOffer}
+                                />
+                            </div>
+                        )}
                     </div>
 
                     {activeTab === 'custom' && (

@@ -120,6 +120,12 @@
     z-index: 2;
 }
 
+/* FIX: When inside badges-overlay, reset absolute positioning to allow stacking */
+.badges-overlay .badge {
+    position: static;
+    margin: 0;
+}
+
 .new-badge {
     background-color: #4CAF50;
 }

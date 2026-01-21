@@ -80,7 +80,7 @@ const ProductDetails = () => {
     const isVideo = currentMedia?.endsWith('.mp4') || currentMedia?.endsWith('.webm') || currentMedia?.includes('/video/');
 
     const whatsappUrl = `https://wa.me/916264246210?text=${encodeURIComponent(
-        `Hello! I want to order this item: \n\n*Product Name:* ${product.name} \n*Price:* ₹${product.price} \n*Link:* ${window.location.href}\n\nIs it available?`
+        `Hello! I want to order this item: \n\n*Product Name:* ${product.name} \n*Price:* ${product.isSpecialOffer ? `₹${product.discountPrice} (MRP: ₹${product.price})` : `₹${product.price}`} \n*Link:* ${window.location.href}\n\nIs it available?`
     )}`;
 
     const toggleMute = (e) => {
@@ -194,8 +194,7 @@ const ProductDetails = () => {
                                 </>
                             )}
 
-                            {product.isNew && <span className="badge new-badge">New Arrival</span>}
-                            {product.isBestSeller && <span className="badge hot-badge">Best Seller</span>}
+                            {/* Badges removed from here */}
                         </div>
 
                         {media.length > 1 && (
@@ -241,9 +240,21 @@ const ProductDetails = () => {
 
                         <h1 className="product-title-large">{product.name}</h1>
                         <div className="price-block">
-                            <span className="current-price">₹{product.price}</span>
-                            {/* Placeholder for discount logic if added later */}
-                            {/* <span className="original-price">₹{product.price * 1.2}</span> */}
+                            {product.isSpecialOffer ? (
+                                <>
+                                    <span className="original-price" style={{ textDecoration: 'line-through', color: '#888', marginRight: '10px', fontSize: '1.2rem' }}>₹{product.price}</span>
+                                    <span className="current-price" style={{ color: '#ff4081', fontSize: '1.5rem', fontWeight: 'bold' }}>₹{product.discountPrice}</span>
+                                </>
+                            ) : (
+                                <span className="current-price">₹{product.price}</span>
+                            )}
+                        </div>
+
+                        {/* Badges Section */}
+                        <div className="info-badges" style={{ display: 'flex', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
+                            {product.isSpecialOffer && <span className="badge" style={{ backgroundColor: '#FF0000', color: '#FFFFFF', fontWeight: 'bold', padding: '6px 12px', borderRadius: '20px', fontSize: '0.85rem' }}>Special Offer</span>}
+                            {product.isNew && <span className="badge new-badge" style={{ backgroundColor: '#4CAF50', color: 'white', padding: '6px 12px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: '600' }}>New Arrival</span>}
+                            {product.isBestSeller && <span className="badge hot-badge" style={{ backgroundColor: '#FF5722', color: 'white', padding: '6px 12px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: '600' }}>Best Seller</span>}
                         </div>
 
                         <div className="action-buttons">

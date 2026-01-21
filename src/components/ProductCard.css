@@ -124,6 +124,13 @@
     z-index: 2;
 }
 
+/* FIX: When inside badges-container, reset absolute positioning to allow stacking */
+.badges-container .tag {
+    position: static;
+    margin: 0;
+    /* Let gap handle spacing */
+}
+
 .tag-new {
     background-color: var(--color-highlight);
 }

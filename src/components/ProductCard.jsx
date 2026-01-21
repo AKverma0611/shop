@@ -76,7 +76,7 @@ const ProductCard = ({ product }) => {
 
     const isWishlisted = isInWishlist(product.id);
     const whatsappUrl = `https://wa.me/916264246210?text=${encodeURIComponent(
-        `Hello! I want to order this item: \n\n*Product Name:* ${product.name} \n*Price:* ₹${product.price} \n*Image:* ${media[0]}\n\nIs it available?`
+        `Hello! I want to order this item: \n\n*Product Name:* ${product.name} \n*Price:* ${product.isSpecialOffer ? `₹${product.discountPrice} (MRP: ₹${product.price})` : `₹${product.price}`} \n*Image:* ${media[0]}\n\nIs it available?`
     )}`;
 
     // Navigation Logic
@@ -230,8 +230,14 @@ const ProductCard = ({ product }) => {
                         </div>
                     </>
                 )}
-                {product.isNew && <span className="tag tag-new">New</span>}
-                {product.isBestSeller && <span className="tag tag-hot">Hot</span>}
+
+                {/* Badges */}
+                <div className="badges-container" style={{ position: 'absolute', top: '10px', left: '10px', display: 'flex', flexDirection: 'column', gap: '5px', alignItems: 'flex-start' }}>
+                    {product.isSpecialOffer && <span className="tag" style={{ backgroundColor: '#FF0000', color: '#FFFFFF', fontWeight: 'bold' }}>Special Offer</span>}
+                    {product.isNew && <span className="tag tag-new">New</span>}
+                    {product.isBestSeller && <span className="tag tag-hot">Hot</span>}
+                </div>
+
                 <button
                     className={`wishlist-btn ${isWishlisted ? 'active' : ''}`}
                     onClick={() => toggleWishlist(product)}
@@ -243,7 +249,16 @@ const ProductCard = ({ product }) => {
             <div className="product-info">
                 <div className="product-category">{product.category}</div>
                 <h3 className="product-title" onClick={() => navigate(`/product/${product.id}`)} style={{ cursor: 'pointer' }}>{product.name}</h3>
-                <div className="product-price">₹{product.price}</div>
+
+                {product.isSpecialOffer ? (
+                    <div className="product-price">
+                        <span style={{ textDecoration: 'line-through', color: '#888', marginRight: '8px', fontSize: '0.9rem' }}>₹{product.price}</span>
+                        <span style={{ color: '#ff4081', fontWeight: 'bold' }}>₹{product.discountPrice}</span>
+                    </div>
+                ) : (
+                    <div className="product-price">₹{product.price}</div>
+                )}
+
                 <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="btn btn-secondary btn-sm btn-block">
                     <MessageCircle size={16} /> Order Now
                 </a>
